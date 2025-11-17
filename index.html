@@ -147,7 +147,7 @@
 
 
         /* -------------------------------------------
-         导出图片专用样式 (9:16 布局)
+         导出图片专用样式 (自动高度)
         -------------------------------------------
         */
 
@@ -155,8 +155,8 @@
             position: absolute;
             left: -9999px;
             top: 0;
-            width: 1080px;  /* 基础宽度 1080p */
-            height: 2200px; /* 基础高度 1080p */
+            width: 1080px;  
+            height: auto; 
             background: #fdfaf6;
             font-family: Arial, sans-serif;
             color: #333;
@@ -188,8 +188,6 @@
         }
 
         #export-image-container .export-grid-wrapper {
-            flex: 1; /* 占据所有剩余空间 */
-            overflow: hidden; /* 确保内容不会溢出 1920 的高度 */
         }
         
         #export-image-container .export-grid {
@@ -198,26 +196,28 @@
             gap: 8px; 
         }
 
+        /* 导出项目的样式
+        */
         #export-image-container .export-item {
-            background-color: #f3f4f6; /* 浅灰色底 */
-            color: #374151; /* 深灰色字 */
+            background-color: #f3f4f6; 
+            color: #374151; 
             border-radius: 6px;
-            padding: 6px 4px;
-            font-size: 12px; 
+            padding: 8px 6px; /* 增加内边距 */
+            font-size: 14px;  /* 调大字体 */
             font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            word-wrap: break-word;
-            word-break: break-word;
-            min-height: 30px;
+            word-wrap: break-word; /* 允许换行 */
+            word-break: break-word; /* 允许长单词换行 */
+            min-height: 40px; /* 增加最小高度 */
         }
 
         #export-image-container .export-item.completed {
-            background-color: #f0ad4e; /* 橙色底 */
-            color: #ffffff; /* 白色字 */
-            font-weight: 600; /* 稍粗 */
+            background-color: #f0ad4e; 
+            color: #ffffff; 
+            font-weight: 600; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
@@ -256,7 +256,7 @@
 
     <script>
         // --- 1. 你的清单项目 ---
-        // (已修复: 移除了上一版在 "被坚定选择" 前的错误 "D")
+        // (已修复: 移除了上一版在 "冲浪" 前的错误 "V")
         const items = [
             "送礼物", "被送礼物", "暗恋", "明恋", "失恋", "表白", "被表白", "留长发", "剪短发", 
             "染发", "漂发", "烫发", "化妆", "做美甲", "放下一个人", "有过遗憾", "爱而不得", 
