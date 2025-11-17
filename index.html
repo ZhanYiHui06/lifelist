@@ -147,15 +147,10 @@
 
 
         /* -------------------------------------------
-         重大更新: 导出图片专用样式 (9:16 布局)
+         导出图片专用样式 (9:16 布局)
         -------------------------------------------
         */
 
-        /* 1. 导出容器 (画布)
-         - 隐藏在屏幕外
-         - 严格的 9:16 比例 (1080x1920)
-         - 基础尺寸，将通过 scale: 2 放大
-        */
         #export-image-container {
             position: absolute;
             left: -9999px;
@@ -168,10 +163,9 @@
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
-            padding: 60px 50px; /* 上下 60, 左右 50 */
+            padding: 50px 50px; 
         }
 
-        /* 2. 导出标题 */
         #export-image-container .export-title {
             font-size: 64px;
             font-weight: bold;
@@ -180,7 +174,6 @@
             margin: 20px 0;
         }
 
-        /* 3. 导出进度 */
         #export-image-container .export-progress {
             font-size: 32px;
             font-weight: bold;
@@ -194,7 +187,6 @@
             font-size: 1.2em;
         }
 
-        /* 4. 导出网格 (核心) */
         #export-image-container .export-grid-wrapper {
             flex: 1; /* 占据所有剩余空间 */
             overflow: hidden; /* 确保内容不会溢出 1920 的高度 */
@@ -202,19 +194,16 @@
         
         #export-image-container .export-grid {
             display: grid;
-            /* 6 列布局, 确保 158 个项目能放下 */
             grid-template-columns: repeat(6, 1fr); 
-            gap: 10px; /* 紧凑的间隙 */
+            gap: 8px; 
         }
 
-        /* 5. 导出的项目 (所有) */
         #export-image-container .export-item {
-            /* 默认: 未选中样式 */
             background-color: #f3f4f6; /* 浅灰色底 */
             color: #374151; /* 深灰色字 */
             border-radius: 6px;
-            padding: 8px 4px;
-            font-size: 13px; /* 更小的字体以适应布局 */
+            padding: 6px 4px;
+            font-size: 12px; 
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -222,11 +211,9 @@
             text-align: center;
             word-wrap: break-word;
             word-break: break-word;
-            min-height: 40px; /* 最小高度 */
-            transition: all 0.2s; /* (为了平滑，虽然截图时用不到) */
+            min-height: 30px;
         }
 
-        /* 6. 导出的项目 (已选中) */
         #export-image-container .export-item.completed {
             background-color: #f0ad4e; /* 橙色底 */
             color: #ffffff; /* 白色字 */
@@ -235,7 +222,6 @@
         }
 
 
-        /* 7. 导出页脚 */
         #export-image-container .export-footer {
             font-size: 20px;
             color: #aaa;
@@ -270,6 +256,7 @@
 
     <script>
         // --- 1. 你的清单项目 ---
+        // (已修复: 移除了上一版在 "被坚定选择" 前的错误 "D")
         const items = [
             "送礼物", "被送礼物", "暗恋", "明恋", "失恋", "表白", "被表白", "留长发", "剪短发", 
             "染发", "漂发", "烫发", "化妆", "做美甲", "放下一个人", "有过遗憾", "爱而不得", 
@@ -342,19 +329,18 @@
                     resetProgress();
                 }
             } else {
-                console.log("在iframe中，跳过confirm，直接重置");
+                console.log("在iframe中, 跳过confirm, 直接重置");
                 resetProgress(); 
             }
         });
 
-        // --- (重大更新) 导出按钮点击 ---
+        // --- 导出按钮点击 ---
         exportBtn.addEventListener('click', () => {
             
             // 1. 获取所有已完成的项目
             const completedButtons = document.querySelectorAll('.checklist-item.completed');
             const completedTexts = Array.from(completedButtons).map(btn => btn.textContent);
             const progressText = `${completedButtons.length} / ${items.length}`;
-            // (新增) 创建一个 Set, 方便快速查找
             const completedSet = new Set(completedTexts);
 
             // 2. 设置加载状态
@@ -366,11 +352,10 @@
             const exportContainer = document.createElement('div');
             exportContainer.id = 'export-image-container';
 
-            // 4. (重大修改) 动态生成 *所有* 项目的 HTML
+            // 4. 动态生成 *所有* 项目的 HTML
             let itemsHTML = '';
             items.forEach(text => {
                 const cleanText = text.replace(/`/g, '\\`').replace(/\$/g, '\\$');
-                // 检查这个项目是否在已完成的 Set 中
                 const isCompleted = completedSet.has(text);
                 const completedClass = isCompleted ? 'completed' : '';
                 
@@ -394,13 +379,11 @@
             // 6. 将容器添加到 DOM 中 (必需)
             document.body.appendChild(exportContainer);
 
-            // 7. (重大修改) 调用 html2canvas 并提高分辨率
+            // 7. 调用 html2canvas 并提高分辨率
             html2canvas(exportContainer, {
                 useCORS: true,
                 backgroundColor: null, 
-                // 提高分辨率:
-                // 基础 1080p * 2 = 2160x3840
-                scale: 2
+                scale: 2 
             }).then(canvas => {
                 // 8. 创建下载链接
                 const link = document.createElement('a');
@@ -456,7 +439,8 @@
             try {
                 const savedState = localStorage.getItem(storageKey);
                 return savedState ? JSON.parse(savedState) : [];
-            } catch (error) {
+            } catch (error)
+                {
                 console.warn("无法从本地存储加载进度:", error);
                 return [];
             }
