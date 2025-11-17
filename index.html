@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* --- 基础样式 --- */
+        /* --- 基础样式 (用户可见界面) --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #f7f9fc;
@@ -18,7 +18,6 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* --- 容器 --- */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -30,7 +29,6 @@
             margin-bottom: 10px;
         }
 
-        /* --- 进度统计 --- */
         .progress-container {
             font-size: 1.2em;
             font-weight: bold;
@@ -38,7 +36,7 @@
             margin-bottom: 20px;
             white-space: nowrap;
         }
-        
+        
         #progress-count {
             color: #f0ad4e;
             font-size: 1.5em;
@@ -49,7 +47,6 @@
             margin: 0 4px;
         }
 
-        /* --- 按钮网格 --- */
         .checklist-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -62,7 +59,6 @@
             }
         }
 
-        /* --- 按钮样式 --- */
         .checklist-item {
             background-color: #ffffff;
             border: 1px solid #ddd;
@@ -71,43 +67,31 @@
             font-size: 1em;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            min-height: 40px; 
+            min-height: 40px; 
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             word-wrap: break-word;
             word-break: break-word;
-
-            /* --- 优化点 1: 更精细的过渡效果 ---
-              - transform 和 box-shadow 设为 0.1s，让点按反馈更灵敏
-              - background-color 和 color 保持 0.2s，让状态切换平滑
-            */
             transition: transform 0.1s ease-out,
                         box-shadow 0.1s ease-out,
                         background-color 0.2s ease,
                         border-color 0.2s ease,
                         color 0.2s ease;
-
-            /* --- 优化点 2: 移除移动端点击时的灰色高亮 --- */
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- 优化点 3: :active 伪类 ---
-          当按钮被按住（鼠标按下或手指触摸）时触发
-        */
         .checklist-item:active {
-            transform: scale(0.96); /* 按钮缩小，模拟按压效果 */
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* 阴影变小，更贴近平面 */
+            transform: scale(0.96);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        
+        
         .checklist-item:hover {
             border-color: #aaa;
-            /* 保持 hover 时的阴影效果 */
             box-shadow: 0 4px 8px rgba(0,0,0,0.08);
         }
 
-        /* --- 高亮 (已完成) 样式 --- */
         .checklist-item.completed {
             background-color: #f0ad4e;
             color: #ffffff;
@@ -115,18 +99,12 @@
             font-weight: bold;
         }
 
-        /*
-          --- 优化点 4: 已完成按钮的点按效果 ---
-          当一个已完成（橙色）的按钮被按下时，
-          除了缩小，我们还让它轻微变暗，反馈更明显
-        */
         .checklist-item.completed:active {
-            background-color: #e69a3d; /* 橙色稍微变暗 */
+            background-color: #e69a3d;
             transform: scale(0.96);
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        /* --- 底部按钮控制容器 --- */
         .button-controls {
             display: flex;
             justify-content: center;
@@ -135,53 +113,122 @@
             margin-top: 30px;
         }
 
-        /* --- 导出按钮 --- */
-        .export-button {
+        .export-button, .reset-button {
             padding: 12px 24px;
             font-size: 1em;
             font-weight: bold;
             color: #fff;
-            background-color: #5cb85c;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.1s ease-out;
             -webkit-tap-highlight-color: transparent;
         }
-        .export-button:hover {
-            background-color: #4cae4c;
-        }
-        .export-button:active {
-             transform: scale(0.96);
-        }
+        
+        .export-button { background-color: #5cb85c; }
+        .export-button:hover { background-color: #4cae4c; }
+        .export-button:active { transform: scale(0.96); }
 
-        /* --- 重置按钮 --- */
-        .reset-button {
-            margin-top: 0;
-            padding: 12px 24px;
-            font-size: 1em;
-            font-weight: bold;
-            color: #fff;
-            background-color: #d9534f;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.1s ease-out;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .reset-button:hover {
-            background-color: #c9302c;
-        }
-        .reset-button:active {
-            transform: scale(0.96);
-        }
+        .reset-button { background-color: #d9534f; margin-top: 0; }
+        .reset-button:hover { background-color: #c9302c; }
+        .reset-button:active { transform: scale(0.96); }
 
-        /* --- 按钮禁用时的样式 --- */
+
         .export-button:disabled,
         .reset-button:disabled {
             opacity: 0.7;
             cursor: not-allowed;
-            transform: scale(1); /* 禁用时不允许点按 */
+            transform: scale(1);
+        }
+
+
+        /* -------------------------------------------
+         新增: 导出图片专用样式 (9:16 布局)
+         这些样式仅用于屏幕外隐藏的 <div>
+        -------------------------------------------
+        */
+
+        /* 1. 导出容器 (画布)
+         - 隐藏在屏幕外
+         - 严格的 9:16 比例 (720x1280)
+         - Flex 布局用于垂直排列 标题, 进度, 网格, 页脚
+        */
+        #export-image-container {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 720px;
+            height: 1280px;
+            background: #fdfaf6; /* 更柔和的纸张背景色 */
+            font-family: Arial, sans-serif; /* 确保字体在所有系统上一致 */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box; /* 确保 padding 不会破坏尺寸 */
+            padding: 40px;
+        }
+
+        /* 2. 导出标题 */
+        #export-image-container .export-title {
+            font-size: 48px;
+            font-weight: bold;
+            color: #d9534f;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        /* 3. 导出进度 */
+        #export-image-container .export-progress {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        #export-image-container .export-progress-count {
+            color: #f0ad4e;
+            font-size: 1.2em;
+        }
+
+        /* 4. 导出网格 (核心) */
+        #export-image-container .export-grid-wrapper {
+            flex: 1; /* 占据所有剩余空间 */
+            overflow: hidden; /* 核心: 强制内容在此区域内，超出则截断 */
+        }
+        
+        #export-image-container .export-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 列布局 */
+            gap: 15px;
+        }
+
+        /* 5. 导出的项目 */
+        #export-image-container .export-item {
+            background-color: #f0ad4e;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 12px 10px;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            word-wrap: break-word;
+            word-break: break-word;
+            min-height: 60px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 6. 导出页脚 */
+        #export-image-container .export-footer {
+            font-size: 16px;
+            color: #aaa;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
         }
 
     </style>
@@ -189,10 +236,13 @@
 <body>
 
     <div class="container">
-
+        <!-- 
+          capture-area 仅用于用户界面,
+          不再用于截图
+        -->
         <div id="capture-area">
             <h1>人生完成清单</h1>
-            
+            
             <div class="progress-container">
                 <span id="progress-count">0</span> / <span id="total-count">0</span>
             </div>
@@ -211,41 +261,41 @@
     <script>
         // --- 1. 你的清单项目 ---
         const items = [
-            "送礼物", "被送礼物", "暗恋", "明恋", "失恋", "表白", "被表白", "留长发", "剪短发", 
-            "染发", "漂发", "烫发", "化妆", "做美甲", "放下一个人", "有过遗憾", "爱而不得", 
-            "双向奔赴", "当海王", "拒绝他人表白", "表白被拒", "被渣", "犯过傻", "装糊涂", 
-            "犯校规", "迟到", "旷课", "上课睡觉", "打架被叫家长", "去酒吧", "和朋友去KTV", 
-            "断片", "失眠", "睡一天", "吵架", "绝交", "晚上一个人哭", "献血", "住院", "做手术", 
-            "晕倒", "会做饭", "做一桌菜", "做饭给家人", "做甜品给喜欢的人", "有超过10年的好朋友", 
-            "有个无条件可信任的朋友", "买花", "被送花", "给自己买礼物", "通宵补作业", 
-            "一个人散步", "夜跑", "深夜放毒", "向陌生人吐露心声", "一个人出去吃饭", "一个人看电影", 
-            "摄影", "一个人去酒吧", "一个人过生日", "一个人逛超市", "一个人去图书馆", "一个人看病", 
-            "一个人去唱歌", "社死过", "一个人出门逛", "一个人在外难过", "给自己写信", "出国", 
-            "一个人旅游", "跟朋友旅游", "拥有要好的异性朋友", "谈恋爱", "考试不及格", "考试第一名", 
-            "当班干部", "竞选学生会", "上电视", "上报纸", "登台演出", "主持节目", "演讲", "野性消费", 
-            "被雪糕刺客刺伤过", "被老师点名表扬", "被老师点名批评", "全校表扬", "被背叛", "被伤害", 
-            "被坚定选择", "获奖", "学一门外语", "写论文", "写书", "写诗", "写日记", "写剧本", 
-            "写歌", "拍影片", "参加比赛", "拍写真", "买相机", "会一种乐器", "有过超过5年的兴趣爱好", 
-            "参加志愿活动", "自己一个人住宾馆", "看鬼片", "去密室", "去鬼屋", "去游乐场", 
-            "去看现场演唱会", "去音乐节", "偶遇明星", "去签售会", "在图书馆待一天", "兼职", 
-            "打工", "看画展", "捐款", "道歉", "释怀", "失望", "淋雨", "种花", "养宠物", "泡温泉", 
-            "跳伞", "坐过山车", "蹦极", "骑马", "骑卡丁车", "攀岩", "游泳", "滑冰", "滑雪", "潜水", 
-            "冲浪", "旱冰", "滑板", "野炊", "登山", "看雪", "看海", "看日出", "看日落", "拿驾照", 
-            "自驾游", "给父母买衣服", "当伴娘/郎", "摆地摊", "和同学打水仗", "社团活动", "组建社团", 
-            "写信", "独自坐飞机", "拼拼图", "办生日会", "健身", "买名牌", "开网店", "练字", 
-            "沉迷游戏", "拍毕业照", "面试成功", "放孔明灯", "逛小吃街", "和网友见面", "发表成果", 
-            "买唱片", "异地恋", "异国恋", "认识不同国籍的人", "创业", "看极光", "进大公司工作", 
-            "做未来规划", "独居", "一个人租房", "转学", "被骗", "撒谎", "改掉一个坏习惯", 
+            "送礼物", "被送礼物", "暗恋", "明恋", "失恋", "表白", "被表白", "留长发", "剪短发", 
+            "染发", "漂发", "烫发", "化妆", "做美甲", "放下一个人", "有过遗憾", "爱而不得", 
+            "双向奔赴", "当海王", "拒绝他人表白", "表白被拒", "被渣", "犯过傻", "装糊涂", 
+            "犯校规", "迟到", "旷课", "上课睡觉", "打架被叫家长", "去酒吧", "和朋友去KTV", 
+            "断片", "失眠", "睡一天", "吵架", "绝交", "晚上一个人哭", "献血", "住院", "做手术", 
+            "晕倒", "会做饭", "做一桌菜", "做饭给家人", "做甜品给喜欢的人", "有超过10年的好朋友", 
+            "有个无条件可信任的朋友", "买花", "被送花", "给自己买礼物", "通宵补作业", 
+            "一个人散步", "夜跑", "深夜放毒", "向陌生人吐露心声", "一个人出去吃饭", "一个人看电影", 
+            "摄影", "一个人去酒吧", "一个人过生日", "一个人逛超市", "一个人去图书馆", "一个人看病", 
+            "一个人去唱歌", "社死过", "一个人出门逛", "一个人在外难过", "给自己写信", "出国", 
+            "一个人旅游", "跟朋友旅游", "拥有要好的异性朋友", "谈恋爱", "考试不及格", "考试第一名", 
+            "当班干部", "竞选学生会", "上电视", "上报纸", "登台演出", "主持节目", "演讲", "野性消费", 
+            "被雪糕刺客刺伤过", "被老师点名表扬", "被老师点名批评", "全校表扬", "被背叛", "被伤害", 
+            "被坚定选择", "获奖", "学一门外语", "写论文", "写书", "写诗", "写日记", "写剧本", 
+            "写歌", "拍影片", "参加比赛", "拍写真", "买相机", "会一种乐器", "有过超过5年的兴趣爱好", 
+            "参加志愿活动", "自己一个人住宾馆", "看鬼片", "去密室", "去鬼屋", "去游乐场", 
+            "去看现场演唱会", "去音乐节", "偶遇明星", "去签售会", "在图书馆待一天", "兼职", 
+            "打工", "看画展", "捐款", "道歉", "释怀", "失望", "淋雨", "种花", "养宠物", "泡温泉", 
+            "跳伞", "坐过山车", "蹦极", "骑马", "骑卡丁车", "攀岩", "游泳", "滑冰", "滑雪", "潜水", 
+            "冲浪", "旱冰", "滑板", "野炊", "登山", "看雪", "看海", "看日出", "看日落", "拿驾照", 
+            "自驾游", "给父母买衣服", "当伴娘/郎", "摆地摊", "和同学打水仗", "社团活动", "组建社团", 
+            "写信", "独自坐飞机", "拼拼图", "办生日会", "健身", "买名牌", "开网店", "练字", 
+            "沉迷游戏", "拍毕业照", "面试成功", "放孔明灯", "逛小吃街", "和网友见面", "发表成果", 
+            "买唱片", "异地恋", "异国恋", "认识不同国籍的人", "创业", "看极光", "进大公司工作", 
+            "做未来规划", "独居", "一个人租房", "转学", "被骗", "撒谎", "改掉一个坏习惯", 
             "加入校队", "坐摩天轮", "在朋友家过夜", "擅长一项运动", "谈过一场刻骨铭心的恋爱"
         ];
-        
+        
         // --- 2. 变量定义 ---
         const grid = document.getElementById('checklist');
         const progressCountEl = document.getElementById('progress-count');
         const totalCountEl = document.getElementById('total-count');
         const resetBtn = document.getElementById('reset-btn');
         const exportBtn = document.getElementById('export-btn');
-        const storageKey = 'lifeChecklistState'; 
+        const storageKey = 'lifeChecklistState'; 
 
         // --- 3. 初始化 ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -255,11 +305,11 @@
                 const button = document.createElement('button');
                 button.className = 'checklist-item';
                 button.textContent = itemText;
-                
+                
                 if (completedItems.includes(itemText)) {
                     button.classList.add('completed');
                 }
-                
+                
                 grid.appendChild(button);
             });
 
@@ -269,14 +319,12 @@
 
         // --- 4. 事件监听 ---
 
-        // 按钮网格点击
         grid.addEventListener('click', (e) => {
             if (e.target.classList.contains('checklist-item')) {
                 handleItemClick(e.target);
             }
         });
 
-        // 重置按钮点击
         resetBtn.addEventListener('click', () => {
             console.log("重置按钮被点击");
             if (window.self === window.top) {
@@ -285,35 +333,83 @@
                 }
             } else {
                 console.log("在iframe中，跳过confirm，直接重置");
-                resetProgress(); 
+                resetProgress(); 
             }
         });
 
-        // 导出按钮点击
+        // --- (重大更新) 导出按钮点击 ---
         exportBtn.addEventListener('click', () => {
-            const captureArea = document.getElementById('capture-area');
-            
+            
+            // 1. 获取所有已完成的项目
+            const completedButtons = document.querySelectorAll('.checklist-item.completed');
+            const completedTexts = Array.from(completedButtons).map(btn => btn.textContent);
+            const progressText = `${completedButtons.length} / ${items.length}`;
+
+            // 2. 检查是否
+            if (completedTexts.length === 0) {
+                exportBtn.textContent = '请先选择项目';
+                exportBtn.disabled = true;
+                setTimeout(() => {
+                    exportBtn.textContent = '导出为图片';
+                    exportBtn.disabled = false;
+                }, 2000);
+                return;
+            }
+
+            // 3. 设置加载状态
             exportBtn.disabled = true;
             resetBtn.disabled = true;
             exportBtn.textContent = '正在生成中...';
 
-            html2canvas(captureArea, {
+            // 4. 创建屏幕外容器
+            const exportContainer = document.createElement('div');
+            exportContainer.id = 'export-image-container';
+
+            // 5. 动态生成网格项目的 HTML
+            let itemsHTML = '';
+            completedTexts.forEach(text => {
+                // 使用反斜杠转义可能破坏模板字符串的字符
+                const cleanText = text.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+                itemsHTML += `<div class="export-item">${cleanText}</div>`;
+            });
+
+            // 6. 填充容器的 HTML
+            exportContainer.innerHTML = `
+                <div class="export-title">人生完成清单</div>
+                <div class="export-progress">
+                    已完成: <span class="export-progress-count">${progressText}</span>
+                </div>
+                <div class="export-grid-wrapper">
+                    <div class="export-grid">
+                        ${itemsHTML}
+                    </div>
+                </div>
+                <div class="export-footer">My Life Checklist</div>
+            `;
+
+            // 7. 将容器添加到 DOM 中 (必需)
+            document.body.appendChild(exportContainer);
+
+            // 8. 调用 html2canvas 截取 *隐藏的容器*
+            html2canvas(exportContainer, {
                 useCORS: true,
-                backgroundColor: '#f7f9fc',
-                // 提高分辨率，使图片更清晰
-                scale: window.devicePixelRatio * 1.5 
+                backgroundColor: null, // 我们已在CSS中设置了背景
+                scale: 1 // 使用 1:1 比例，因为我们已手动设置 720p
             }).then(canvas => {
+                // 9. 创建下载链接
                 const link = document.createElement('a');
                 link.href = canvas.toDataURL('image/png');
-                link.download = 'my-life-checklist.png';
-                
+                link.download = 'my-life-checklist-9x16.png';
+                
                 document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link); 
+                document.body.removeChild(link); 
 
             }).catch(err => {
                 console.error('图片生成失败:', err);
             }).finally(() => {
+                // 10. (重要) 无论成功与否，都移除隐藏容器并恢复按钮
+                document.body.removeChild(exportContainer);
                 exportBtn.disabled = false;
                 resetBtn.disabled = false;
                 exportBtn.textContent = '导出为图片';
@@ -363,3 +459,5 @@
     </script>
 </body>
 </html>
+
+
