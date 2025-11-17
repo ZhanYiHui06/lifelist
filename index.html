@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的人生完成清单</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* --- 基础样式 --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f7f9fc;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* --- 容器 --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #d9534f;
+            margin-bottom: 10px;
+        }
+
+        /* --- 进度统计 --- */
+        .progress-container {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        
+        #progress-count {
+            color: #f0ad4e;
+            font-size: 1.5em;
+            margin: 0 4px;
+        }
+
+        #total-count {
+            margin: 0 4px;
+        }
+
+        /* --- 按钮网格 --- */
+        .checklist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        @media (min-width: 640px) {
+            .checklist-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+            }
+        }
+
+        /* --- 按钮样式 --- */
+        .checklist-item {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 8px;
+            font-size: 1em;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            min-height: 40px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            word-wrap: break-word;
+            word-break: break-word;
+
+            /* --- 优化点 1: 更精细的过渡效果 ---
+              - transform 和 box-shadow 设为 0.1s，让点按反馈更灵敏
+              - background-color 和 color 保持 0.2s，让状态切换平滑
+            */
+            transition: transform 0.1s ease-out,
+                        box-shadow 0.1s ease-out,
+                        background-color 0.2s ease,
+                        border-color 0.2s ease,
+                        color 0.2s ease;
+
+            /* --- 优化点 2: 移除移动端点击时的灰色高亮 --- */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- 优化点 3: :active 伪类 ---
+          当按钮被按住（鼠标按下或手指触摸）时触发
+        */
+        .checklist-item:active {
+            transform: scale(0.96); /* 按钮缩小，模拟按压效果 */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* 阴影变小，更贴近平面 */
+        }
+        
+        .checklist-item:hover {
+            border-color: #aaa;
+            /* 保持 hover 时的阴影效果 */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+
+        /* --- 高亮 (已完成) 样式 --- */
+        .checklist-item.completed {
+            background-color: #f0ad4e;
+            color: #ffffff;
+            border-color: #f0ad4e;
+            font-weight: bold;
+        }
+
+        /*
+          --- 优化点 4: 已完成按钮的点按效果 ---
+          当一个已完成（橙色）的按钮被按下时，
+          除了缩小，我们还让它轻微变暗，反馈更明显
+        */
+        .checklist-item.completed:active {
+            background-color: #e69a3d; /* 橙色稍微变暗 */
+            transform: scale(0.96);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* --- 底部按钮控制容器 --- */
+        .button-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        /* --- 导出按钮 --- */
+        .export-button {
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #5cb85c;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.1s ease-out;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .export-button:hover {
+            background-color: #4cae4c;
+        }
+        .export-button:active {
+             transform: scale(0.96);
+        }
+
+        /* --- 重置按钮 --- */
+        .reset-button {
+            margin-top: 0;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #d9534f;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.1s ease-out;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .reset-button:hover {
+            background-color: #c9302c;
+        }
+        .reset-button:active {
+            transform: scale(0.96);
+        }
+
+        /* --- 按钮禁用时的样式 --- */
+        .export-button:disabled,
+        .reset-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: scale(1); /* 禁用时不允许点按 */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <div id="capture-area">
+            <h1>人生完成清单</h1>
+            
+            <div class="progress-container">
+                <span id="progress-count">0</span> / <span id="total-count">0</span>
+            </div>
+
+            <div class="checklist-grid" id="checklist">
+                <!-- JavaScript 将在此处自动填充按钮 -->
+            </div>
+        </div>
+
+        <div class="button-controls">
+            <button class="export-button" id="export-btn">导出为图片</button>
+            <button class="reset-button" id="reset-btn">重置进度</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 你的清单项目 ---
+        const items = [
+            "送礼物", "被送礼物", "暗恋", "明恋", "失恋", "表白", "被表白", "留长发", "剪短发", 
+            "染发", "漂发", "烫发", "化妆", "做美甲", "放下一个人", "有过遗憾", "爱而不得", 
+            "双向奔赴", "当海王", "拒绝他人表白", "表白被拒", "被渣", "犯过傻", "装糊涂", 
+            "犯校规", "迟到", "旷课", "上课睡觉", "打架被叫家长", "去酒吧", "和朋友去KTV", 
+            "断片", "失眠", "睡一天", "吵架", "绝交", "晚上一个人哭", "献血", "住院", "做手术", 
+            "晕倒", "会做饭", "做一桌菜", "做饭给家人", "做甜品给喜欢的人", "有超过10年的好朋友", 
+            "有个无条件可信任的朋友", "买花", "被送花", "给自己买礼物", "通宵补作业", 
+            "一个人散步", "夜跑", "深夜放毒", "向陌生人吐露心声", "一个人出去吃饭", "一个人看电影", 
+            "摄影", "一个人去酒吧", "一个人过生日", "一个人逛超市", "一个人去图书馆", "一个人看病", 
+            "一个人去唱歌", "社死过", "一个人出门逛", "一个人在外难过", "给自己写信", "出国", 
+            "一个人旅游", "跟朋友旅游", "拥有要好的异性朋友", "谈恋爱", "考试不及格", "考试第一名", 
+            "当班干部", "竞选学生会", "上电视", "上报纸", "登台演出", "主持节目", "演讲", "野性消费", 
+            "被雪糕刺客刺伤过", "被老师点名表扬", "被老师点名批评", "全校表扬", "被背叛", "被伤害", 
+            "被坚定选择", "获奖", "学一门外语", "写论文", "写书", "写诗", "写日记", "写剧本", 
+            "写歌", "拍影片", "参加比赛", "拍写真", "买相机", "会一种乐器", "有过超过5年的兴趣爱好", 
+            "参加志愿活动", "自己一个人住宾馆", "看鬼片", "去密室", "去鬼屋", "去游乐场", 
+            "去看现场演唱会", "去音乐节", "偶遇明星", "去签售会", "在图书馆待一天", "兼职", 
+            "打工", "看画展", "捐款", "道歉", "释怀", "失望", "淋雨", "种花", "养宠物", "泡温泉", 
+            "跳伞", "坐过山车", "蹦极", "骑马", "骑卡丁车", "攀岩", "游泳", "滑冰", "滑雪", "潜水", 
+            "冲浪", "旱冰", "滑板", "野炊", "登山", "看雪", "看海", "看日出", "看日落", "拿驾照", 
+            "自驾游", "给父母买衣服", "当伴娘/郎", "摆地摊", "和同学打水仗", "社团活动", "组建社团", 
+            "写信", "独自坐飞机", "拼拼图", "办生日会", "健身", "买名牌", "开网店", "练字", 
+            "沉迷游戏", "拍毕业照", "面试成功", "放孔明灯", "逛小吃街", "和网友见面", "发表成果", 
+            "买唱片", "异地恋", "异国恋", "认识不同国籍的人", "创业", "看极光", "进大公司工作", 
+            "做未来规划", "独居", "一个人租房", "转学", "被骗", "撒谎", "改掉一个坏习惯", 
+            "加入校队", "坐摩天轮", "在朋友家过夜", "擅长一项运动", "谈过一场刻骨铭心的恋爱"
+        ];
+        
+        // --- 2. 变量定义 ---
+        const grid = document.getElementById('checklist');
+        const progressCountEl = document.getElementById('progress-count');
+        const totalCountEl = document.getElementById('total-count');
+        const resetBtn = document.getElementById('reset-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const storageKey = 'lifeChecklistState'; 
+
+        // --- 3. 初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            let completedItems = loadState();
+
+            items.forEach(itemText => {
+                const button = document.createElement('button');
+                button.className = 'checklist-item';
+                button.textContent = itemText;
+                
+                if (completedItems.includes(itemText)) {
+                    button.classList.add('completed');
+                }
+                
+                grid.appendChild(button);
+            });
+
+            totalCountEl.textContent = items.length;
+            updateProgress();
+        });
+
+        // --- 4. 事件监听 ---
+
+        // 按钮网格点击
+        grid.addEventListener('click', (e) => {
+            if (e.target.classList.contains('checklist-item')) {
+                handleItemClick(e.target);
+            }
+        });
+
+        // 重置按钮点击
+        resetBtn.addEventListener('click', () => {
+            console.log("重置按钮被点击");
+            if (window.self === window.top) {
+                if (confirm('你确定要重置所有进度吗？这将清除所有高亮记录。')) {
+                    resetProgress();
+                }
+            } else {
+                console.log("在iframe中，跳过confirm，直接重置");
+                resetProgress(); 
+            }
+        });
+
+        // 导出按钮点击
+        exportBtn.addEventListener('click', () => {
+            const captureArea = document.getElementById('capture-area');
+            
+            exportBtn.disabled = true;
+            resetBtn.disabled = true;
+            exportBtn.textContent = '正在生成中...';
+
+            html2canvas(captureArea, {
+                useCORS: true,
+                backgroundColor: '#f7f9fc',
+                // 提高分辨率，使图片更清晰
+                scale: window.devicePixelRatio * 1.5 
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'my-life-checklist.png';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link); 
+
+            }).catch(err => {
+                console.error('图片生成失败:', err);
+            }).finally(() => {
+                exportBtn.disabled = false;
+                resetBtn.disabled = false;
+                exportBtn.textContent = '导出为图片';
+            });
+        });
+
+
+        // --- 5. 核心功能函数 ---
+        function handleItemClick(targetElement) {
+            targetElement.classList.toggle('completed');
+            updateProgress();
+        }
+
+        function resetProgress() {
+            document.querySelectorAll('.checklist-item.completed').forEach(btn => {
+                btn.classList.remove('completed');
+            });
+            updateProgress();
+        }
+
+        // --- 6. 辅助函数 (本地存储) ---
+        function updateProgress() {
+            const completedButtons = document.querySelectorAll('.checklist-item.completed');
+            progressCountEl.textContent = completedButtons.length;
+            saveState(completedButtons);
+        }
+
+        function saveState(completedButtons) {
+            try {
+                const completedItems = Array.from(completedButtons).map(btn => btn.textContent);
+                localStorage.setItem(storageKey, JSON.stringify(completedItems));
+            } catch (error) {
+                console.warn("无法保存进度到本地存储:", error);
+            }
+        }
+
+        function loadState() {
+            try {
+                const savedState = localStorage.getItem(storageKey);
+                return savedState ? JSON.parse(savedState) : [];
+            } catch (error) {
+                console.warn("无法从本地存储加载进度:", error);
+                return [];
+            }
+        }
+
+    </script>
+</body>
+</html>
