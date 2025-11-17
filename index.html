@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的人生完成清单</title>
 
+    <!-- 
+      引入 html2canvas 库
+      https://cdnjs.com/libraries/html2canvas
+    -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -143,34 +147,33 @@
 
 
         /* -------------------------------------------
-         新增: 导出图片专用样式 (9:16 布局)
-         这些样式仅用于屏幕外隐藏的 <div>
+         重大更新: 导出图片专用样式 (9:16 布局)
         -------------------------------------------
         */
 
         /* 1. 导出容器 (画布)
          - 隐藏在屏幕外
-         - 严格的 9:16 比例 (720x1280)
-         - Flex 布局用于垂直排列 标题, 进度, 网格, 页脚
+         - 严格的 9:16 比例 (1080x1920)
+         - 基础尺寸，将通过 scale: 2 放大
         */
         #export-image-container {
             position: absolute;
             left: -9999px;
             top: 0;
-            width: 720px;
-            height: 1280px;
-            background: #fdfaf6; /* 更柔和的纸张背景色 */
-            font-family: Arial, sans-serif; /* 确保字体在所有系统上一致 */
+            width: 1080px;  /* 基础宽度 1080p */
+            height: 1920px; /* 基础高度 1080p */
+            background: #fdfaf6;
+            font-family: Arial, sans-serif;
             color: #333;
             display: flex;
             flex-direction: column;
-            box-sizing: border-box; /* 确保 padding 不会破坏尺寸 */
-            padding: 40px;
+            box-sizing: border-box;
+            padding: 60px 50px; /* 上下 60, 左右 50 */
         }
 
         /* 2. 导出标题 */
         #export-image-container .export-title {
-            font-size: 48px;
+            font-size: 64px;
             font-weight: bold;
             color: #d9534f;
             text-align: center;
@@ -179,11 +182,11 @@
 
         /* 3. 导出进度 */
         #export-image-container .export-progress {
-            font-size: 24px;
+            font-size: 32px;
             font-weight: bold;
             text-align: center;
             color: #555;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
         #export-image-container .export-progress-count {
@@ -194,39 +197,50 @@
         /* 4. 导出网格 (核心) */
         #export-image-container .export-grid-wrapper {
             flex: 1; /* 占据所有剩余空间 */
-            overflow: hidden; /* 核心: 强制内容在此区域内，超出则截断 */
+            overflow: hidden; /* 确保内容不会溢出 1920 的高度 */
         }
         
         #export-image-container .export-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 列布局 */
-            gap: 15px;
+            /* 6 列布局, 确保 158 个项目能放下 */
+            grid-template-columns: repeat(6, 1fr); 
+            gap: 10px; /* 紧凑的间隙 */
         }
 
-        /* 5. 导出的项目 */
+        /* 5. 导出的项目 (所有) */
         #export-image-container .export-item {
-            background-color: #f0ad4e;
-            color: #ffffff;
-            border-radius: 8px;
-            padding: 12px 10px;
-            font-size: 16px;
-            font-weight: bold;
+            /* 默认: 未选中样式 */
+            background-color: #f3f4f6; /* 浅灰色底 */
+            color: #374151; /* 深灰色字 */
+            border-radius: 6px;
+            padding: 8px 4px;
+            font-size: 13px; /* 更小的字体以适应布局 */
+            font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             word-wrap: break-word;
             word-break: break-word;
-            min-height: 60px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 40px; /* 最小高度 */
+            transition: all 0.2s; /* (为了平滑，虽然截图时用不到) */
         }
 
-        /* 6. 导出页脚 */
+        /* 6. 导出的项目 (已选中) */
+        #export-image-container .export-item.completed {
+            background-color: #f0ad4e; /* 橙色底 */
+            color: #ffffff; /* 白色字 */
+            font-weight: 600; /* 稍粗 */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+
+        /* 7. 导出页脚 */
         #export-image-container .export-footer {
-            font-size: 16px;
+            font-size: 20px;
             color: #aaa;
             text-align: center;
-            margin-top: 30px;
+            margin-top: 40px;
             padding-top: 20px;
             border-top: 1px solid #eee;
         }
@@ -236,10 +250,6 @@
 <body>
 
     <div class="container">
-        <!-- 
-          capture-area 仅用于用户界面,
-          不再用于截图
-        -->
         <div id="capture-area">
             <h1>人生完成清单</h1>
             
@@ -344,36 +354,30 @@
             const completedButtons = document.querySelectorAll('.checklist-item.completed');
             const completedTexts = Array.from(completedButtons).map(btn => btn.textContent);
             const progressText = `${completedButtons.length} / ${items.length}`;
+            // (新增) 创建一个 Set, 方便快速查找
+            const completedSet = new Set(completedTexts);
 
-            // 2. 检查是否
-            if (completedTexts.length === 0) {
-                exportBtn.textContent = '请先选择项目';
-                exportBtn.disabled = true;
-                setTimeout(() => {
-                    exportBtn.textContent = '导出为图片';
-                    exportBtn.disabled = false;
-                }, 2000);
-                return;
-            }
-
-            // 3. 设置加载状态
+            // 2. 设置加载状态
             exportBtn.disabled = true;
             resetBtn.disabled = true;
             exportBtn.textContent = '正在生成中...';
 
-            // 4. 创建屏幕外容器
+            // 3. 创建屏幕外容器
             const exportContainer = document.createElement('div');
             exportContainer.id = 'export-image-container';
 
-            // 5. 动态生成网格项目的 HTML
+            // 4. (重大修改) 动态生成 *所有* 项目的 HTML
             let itemsHTML = '';
-            completedTexts.forEach(text => {
-                // 使用反斜杠转义可能破坏模板字符串的字符
+            items.forEach(text => {
                 const cleanText = text.replace(/`/g, '\\`').replace(/\$/g, '\\$');
-                itemsHTML += `<div class="export-item">${cleanText}</div>`;
+                // 检查这个项目是否在已完成的 Set 中
+                const isCompleted = completedSet.has(text);
+                const completedClass = isCompleted ? 'completed' : '';
+                
+                itemsHTML += `<div class="export-item ${completedClass}">${cleanText}</div>`;
             });
 
-            // 6. 填充容器的 HTML
+            // 5. 填充容器的 HTML
             exportContainer.innerHTML = `
                 <div class="export-title">人生完成清单</div>
                 <div class="export-progress">
@@ -387,19 +391,21 @@
                 <div class="export-footer">My Life Checklist</div>
             `;
 
-            // 7. 将容器添加到 DOM 中 (必需)
+            // 6. 将容器添加到 DOM 中 (必需)
             document.body.appendChild(exportContainer);
 
-            // 8. 调用 html2canvas 截取 *隐藏的容器*
+            // 7. (重大修改) 调用 html2canvas 并提高分辨率
             html2canvas(exportContainer, {
                 useCORS: true,
-                backgroundColor: null, // 我们已在CSS中设置了背景
-                scale: 1 // 使用 1:1 比例，因为我们已手动设置 720p
+                backgroundColor: null, 
+                // 提高分辨率:
+                // 基础 1080p * 2 = 2160x3840
+                scale: 2
             }).then(canvas => {
-                // 9. 创建下载链接
+                // 8. 创建下载链接
                 const link = document.createElement('a');
                 link.href = canvas.toDataURL('image/png');
-                link.download = 'my-life-checklist-9x16.png';
+                link.download = 'my-life-checklist-HD.png';
                 
                 document.body.appendChild(link);
                 link.click();
@@ -408,7 +414,7 @@
             }).catch(err => {
                 console.error('图片生成失败:', err);
             }).finally(() => {
-                // 10. (重要) 无论成功与否，都移除隐藏容器并恢复按钮
+                // 9. (重要) 无论成功与否，都移除隐藏容器并恢复按钮
                 document.body.removeChild(exportContainer);
                 exportBtn.disabled = false;
                 resetBtn.disabled = false;
